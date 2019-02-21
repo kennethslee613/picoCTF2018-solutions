@@ -1,1 +1,1 @@
-# picoCTF2018-solutions
+# picoCTF2018 Writeups

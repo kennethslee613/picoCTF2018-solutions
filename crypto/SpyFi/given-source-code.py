@@ -17,7 +17,7 @@ print welcome
 
 sitrep = raw_input("Please enter your situation report: ")
 message = """Agent,
-Greetings. My situation r`eport is as foll`ows:
+Greetings. My situation report is as follows:
 {0}
 My agent identifying code is: {1}.
 Down with the Soviets,
