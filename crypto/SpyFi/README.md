@@ -42,7 +42,7 @@ def encrypt(key, plain):
     cipher = AES.new( key.decode('hex'), AES.MODE_ECB )
     return cipher.encrypt(plain).encode('hex')
 ```
-We see that the function takes a `key` and `plain` (plaintext) and returns the plaintext as ciphertext. The first line of the function tells us that the program is using AES ECB encryption. With a quick Google search, Here's a brief description of how ECB encryptions work (ECB shouldn't be used in real life scenarios): https://ctf101.org/cryptography/what-are-block-ciphers/#electronic-codebook-ecb.
+We see that the function takes a `key` and `plain` (plaintext) and returns the plaintext as ciphertext. The first line of the function tells us that the program is using AES ECB encryption. Here's a brief description of how ECB encryptions work (ECB shouldn't be used in real life scenarios): https://ctf101.org/cryptography/what-are-block-ciphers/#electronic-codebook-ecb.
 
 ECB essentially breaks down the plaintext into blocks, encrypts each block, and then combines it to create the ciphertext. This is why we have the `pad()` function, which just pads `message` with trailing 0's until the length of `message` is a multiple of 16.
 ```
