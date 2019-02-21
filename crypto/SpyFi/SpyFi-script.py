@@ -1,5 +1,8 @@
+from __future__ import print_function
 from pwn import *
 import string
+
+context.log_level = 'warn'
 
 startOfFlag = 7 * (16 * 2) 	# starting position of known + part of the flag with the buffer we will be giving (block 7)
 startOfTest = 4 * (16 * 2)	# start of our test input after the buffer is applied (block 4)
@@ -32,7 +35,9 @@ while '}' not in solution:
 	# because \n causes an EOF error due to sendline()
 	for x in string.printable[:-4]:
 		# print the character we are testing
-		print(x)
+		
+		# print out the value we're checking
+		print(x + '\b', end='')
 
 		r = remote('2018shell.picoctf.com', 37131)
 		r.recvuntil(': ')
@@ -46,8 +51,8 @@ while '}' not in solution:
 		if test == secret:
 			# add x to the solution
 			solution += x
-			# print the solution we have so far
-			print(solution)
+			# add x to the printed characters
+			print(x, end='')
 			# set found to true so our script knows we found something
 			found = True
 			# break out of the loop since we found one character
@@ -55,13 +60,13 @@ while '}' not in solution:
 
 	# if we didn't find a match from all printable strings
 	if not found:
-		# send error
-		print('ERROR: No match was found.')
+		# print error
+		print('\nERROR: No match was found.')
 		# break out of while loop
 		break
 
 	# set found to false again
 	found = False
 
-# print our final solution
-print(solution)
+# print a newline at the end to make it look pretty
+print()

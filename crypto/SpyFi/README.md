@@ -69,8 +69,8 @@ Down with the Soviets,
 ```
 
 ```
-			| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f |
-			|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+		| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f |
+		|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 Block 0:	| A | g | e | n | t | , |\n | G | r | e | e | t | i | n | g | s |
 Block 1:	| . |   | M | y |   | s | i | t | u | a | t | i | o | n |   | r |
 Block 2:	| e | p | o | r | t |   | i | s |   | a | s |   | f | o | l | l |
@@ -83,8 +83,8 @@ Block 7:	| 0 | 6 |\n |
 
 Again, we are assuming that each block is of length 16. With this, we can see that if we send `'A' * 11` as our input (as in `AAAAAAAAAAA`), then block 3 should look like:
 ```
-			| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f |
-			|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+		| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f |
+		|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 Block 3:	| o | w | s | : |\n | A | A | A | A | A | A | A | A | A | A | A |
 ```
 And if we were to send `'A' * 12` as our input, then block 3 should look exactly the same, since the extra `'A'` ends up in the beginning of block 4 (and that should not mess with block 3 at all).
@@ -126,8 +126,8 @@ Again, we look at block 3 of the ciphertext:
 We confirmed that block 3's with input `'A' * 11` and `'A' * 12` are the same. We're not quite done yet though. We also have to check that block 3 with input `'A' * 10` will be different from block 3 with input `'A' * 11`. We can see why if we take a look at what block 3 with input `'A' * 10` would look like:
 
 ```
-			| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f |
-			|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+		| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f |
+		|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 Block 3:	| o | w | s | : |\n | A | A | A | A | A | A | A | A | A | A |\n |
 ```
 
