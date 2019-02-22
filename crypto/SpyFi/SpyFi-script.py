@@ -1,12 +1,12 @@
-from __future__ import print_function
-from pwn import *
-import string
+from __future__ import print_function	# for the use of the end parameter in print functions
+from pwn import *				# pwntools is a very helpful tool for connecting to servers and programs. uses python 2
+import string 					# for string.printable
 
-context.log_level = 'warn'
+context.log_level = 'warn'		# mutes the extra stuff from the remote() function
 
-startOfFlag = 7 * (16 * 2) 	# starting position of known + part of the flag with the buffer we will be giving (block 7)
+startOfKnown = 7 * (16 * 2) # starting position of known + part of the flag (block 7)
 startOfTest = 4 * (16 * 2)	# start of our test input after the buffer is applied (block 4)
-paddingFlag = 12 + 32		# padding to get the start of the flag at block 7
+paddingKnown = 12 + 32		# padding to get the start of the flag at block 7
 paddingTest = 11			# padding to test for the flag
 solution = ''				# current solution
 known = 'ifying code is: '	# the known string from the message
@@ -15,16 +15,16 @@ found = False				# debugging purpose
 # while the end of the flag is not in our solution
 while '}' not in solution:
 	# we reveal the flag one character at a time
-	paddingFlag -= 1
+	paddingKnown -= 1
 
 	# open connection
 	r = remote('2018shell.picoctf.com', 37131)
 	# receive bytes until where we send our input
 	r.recvuntil(': ')
 	# send the padding for getting parts of the flag
-	r.sendline(paddingFlag * 'B')
+	r.sendline(paddingKnown * 'B')
 	# store known + part of the flag that we're testing for (block 7)
-	secret = r.recvline()[startOfFlag:startOfFlag + (16 * 2)]
+	secret = r.recvline()[startOfKnown:startOfKnown + (16 * 2)]
 	# close connection
 	r.close()
 
