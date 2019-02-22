@@ -11,7 +11,7 @@ Please enter your situation report: hello world!
 ce046744a8001b55f5031288fc983115ff5affb36c681216a9c51e8f21a58aed691761c8573db4e7ea6b58605dd68fbdbea60e88310e765141901edea32afb0eb08059aee9513523b2d9b83cc2c9f16b77d2745f2588e9e5fe4c80ddc873ee7a50721efe9a5b8ceaf737981c0b7f24abd9232464c345bbe4a91c42c14675fa1b1b8e2c6cddc1b1c40f2ee3f87044598eed89cf57604e0c1f8b077cb586dc25edd5568243e255890c313384b9b027fd8b
 ```
 
-So the program asks us for input and sends us what looks like cipher text afterwards. If we take a look at the source code that they give us, we can get a better understanding of what's going on. I'll be looking at snipets of the source code:
+So the program asks us for input and sends us what looks like cipher text afterwards. If we take a look at the source code that they give us, we can get a better understanding of what's going on. I'll be looking at snippets of the source code:
 
 ```
 agent_code = """flag"""
@@ -107,7 +107,7 @@ Python 2.7.15rc1
 'ab4921835ba8362a668cf37d31aca779'
 ```
 
-Block 3, after being ecnyrpted, is `ab4921835ba8362a668cf37d31aca779`. Now let's confirm this by sending `AAAAAAAAAAAA` (`'A' * 12`):
+Block 3, after being encrypted, is `ab4921835ba8362a668cf37d31aca779`. Now let's confirm this by sending `AAAAAAAAAAAA` (`'A' * 12`):
 
 ```
 Welcome, Agent 006!
@@ -146,7 +146,7 @@ ce046744a8001b55f5031288fc983115ff5affb36c681216a9c51e8f21a58aed691761c8573db4e7
 
 Block 3 in this case came out to be `'db54f3a3575e26c63c0e12434c4d4aaa'`, which is different from the previous block 3's we found, meaning that the block size is indeed 16.
 
-Now we can move on to actually breaking this encrytpion!
+Now we can move on to actually breaking this encryption!
 
 ## Breaking the Encryption
 
@@ -160,7 +160,7 @@ Block 0:	| A | A | A | A | A | A | A | A | A | A | A | A | A | A | A | A |
 Block 1:	| s | e | c | r | e | t |   | i | n | f | o | ! | ! | ! | ! | ! |
 ```
 
-The data in block 1 is the unknown text that we are trying to figure out. We'll call this unkown text `secret`. So how might we go about doing this? First, we send one less A so that one character from `secret` end up at the end of block 0 like so:
+The data in block 1 is the unknown text that we are trying to figure out. We'll call this unknown text `secret`. So how might we go about doing this? First, we send one less A so that one character from `secret` end up at the end of block 0 like so:
 
 ```
 		| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f |
@@ -169,7 +169,7 @@ Block 0:	| A | A | A | A | A | A | A | A | A | A | A | A | A | A | A | s |
 Block 1:	| e | c | r | e | t |   | i | n | f | o | ! | ! | ! | ! | ! |
 ```
 
-Then, the program will encrypt blocks 0 and 1, which means that we have the ciphertext of block 0 with 15 A's and one secret character, we'll call this `leak-secret`. So in our perspective, since we don't know what `secret` is, block 0 would look like the following (where `(U)` is an unkown value):
+Then, the program will encrypt blocks 0 and 1, which means that we have the ciphertext of block 0 with 15 A's and one secret character, we'll call this `leak-secret`. So in our perspective, since we don't know what `secret` is, block 0 would look like the following (where `(U)` is an unknown value):
 ```
 		| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f |
 		|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
