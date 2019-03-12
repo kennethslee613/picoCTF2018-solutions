@@ -56,7 +56,7 @@ Now let's move on to how ECB is being used in this program.
 
 ## Structure of the Encryption
 
-We should start by figuring out the size of the blocks that the plaintext is being split into. Since `message` is being padded by 16, the block size is also most likely 16, but we should test to see if that's true. If the blocks are size 16 each, then this is what it would look like, where `{0}` is our input and `{1}` is the flag:
+We should start by figuring out the size of the blocks that the plaintext is being split into. Since `message` is being padded with 0's until the length is a multiple of 16, the block size is also most likely 16, but we should test to see if that's true. If the blocks are size 16 each, then this is what it would look like, where `{0}` is our input and `{1}` is the flag:
 
 ```
 message = """Agent,
@@ -78,7 +78,7 @@ Block 3:	| o | w | s | : |\n |{0}|\n | M | y |   | a | g | e | n | t |   |
 Block 4:	| i | d | e | n | t | i | f | y | i | n | g |   | c | o | d | e | 
 Block 5:	|   | i | s | : |   |{1}| . |\n | D | o | w | n |   | w | i | t | 
 Block 6:	| h |   | t | h | e |   | S | o | v | i | e | t | s | , |\n | 0 | 
-Block 7:	| 0 | 6 |\n |
+Block 7:	| 0 | 6 |\n | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 ```
 
 Again, we are assuming that each block is of length 16. With this, we can see that if we send `'A' * 11` as our input (as in `AAAAAAAAAAA`), then block 3 should look like:
@@ -151,13 +151,13 @@ Now we can move on to actually breaking this encryption!
 ## Breaking the Encryption
 
 I'll briefly explain how we're going to go about breaking this encryption.
-First, we need a block of text that we already know (usually our input, since we know what our input is). Let's fill this known block with A's.
+First, we need a block of text that we already know, `secret info!` (usually our input, since we know what our input is). Let's fill this known block with A's.
 
 ```
 		| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f |
 		|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 Block 0:	| A | A | A | A | A | A | A | A | A | A | A | A | A | A | A | A |
-Block 1:	| s | e | c | r | e | t |   | i | n | f | o | ! | ! | ! | ! | ! |
+Block 1:	| s | e | c | r | e | t |   | i | n | f | o | ! | 0 | 0 | 0 | 0 |
 ```
 
 The data in block 1 is the unknown text that we are trying to figure out. We'll call this unknown text `secret`. So how might we go about doing this? First, we send one less A so that one character from `secret` end up at the end of block 0 like so:
@@ -166,7 +166,7 @@ The data in block 1 is the unknown text that we are trying to figure out. We'll 
 		| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f |
 		|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 Block 0:	| A | A | A | A | A | A | A | A | A | A | A | A | A | A | A | s |
-Block 1:	| e | c | r | e | t |   | i | n | f | o | ! | ! | ! | ! | ! |
+Block 1:	| e | c | r | e | t |   | i | n | f | o | ! | 0 | 0 | 0 | 0 | 0 |
 ```
 
 Then, the program will encrypt blocks 0 and 1, which means that we have the ciphertext of block 0 with 15 A's and one secret character, we'll call this `leak-secret`. So in our perspective, since we don't know what `secret` is, block 0 would look like the following (where `(U)` is an unknown value):
@@ -182,19 +182,24 @@ So now, we can brute force all 256 possible hex values in place of `(U)` until w
 		| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f |
 		|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 Block 0:	| A | A | A | A | A | A | A | A | A | A | A | A | A | A | s | e |
-Block 1:	| c | r | e | t |   | i | n | f | o | ! | ! | ! | ! | ! |
+Block 1:	| c | r | e | t |   | i | n | f | o | ! | 0 | 0 | 0 | 0 | 0 | 0 |
+
+found = 'se'
 ```
 ```
 		| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f |
 		|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 Block 0:	| A | A | A | A | A | A | A | A | A | A | A | A | A | s | e | c |
-Block 1:	| r | e | t |   | i | n | f | o | ! | ! | ! | ! | ! |
+Block 1:	| r | e | t |   | i | n | f | o | ! | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+found = 'sec'
 ```
 ```
 		| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f |
 		|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 Block 0:	| A | A | A | A | A | A | A | A | A | A | A | A | s | e | c | r |
-Block 1:	| e | t |   | i | n | f | o | ! | ! | ! | ! | ! |
+Block 1:	| e | t |   | i | n | f | o | ! | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+found = 'secr'
 ```
 ```
 ...
@@ -202,13 +207,17 @@ Block 1:	| e | t |   | i | n | f | o | ! | ! | ! | ! | ! |
 ```
 		| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f |
 		|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-Block 0:	| s | e | c | r | e | t |   | i | n | f | o | ! | ! | ! | ! | ! |
-Block 1:	
+Block 0:	| A | A | A | A | s | e | c | r | e | t |   | i | n | f | o | ! |
+Block 1:
+
+found = 'secret info!!!!!'
 ```
 
-In this problem, we know some of the characters immediately following our input text: `'\nMy agent identifying code is: '`. After this string is our flag. Technically we can include the string we know as the `secret` string that we are supposed to find, but that's a lot of useless work. Instead, we'll go about this problem a little differently.
+Once the entire `secret` is inside of block 0, block 1 will disappear, telling us that the entire `secret` is inside of block 0, which means we can stop now.
 
-Instead of having the known block be our input, we can just use the known string mentioned in the paragraph before. More specifically, we'll use the 16 characters that come right before the flag: `'ifying code is: '`. Then, we can start leaking the flag.
+In this problem, we know some of the characters immediately following our input text: `'\nMy agent identifying code is: '`. After this string is our flag. Technically we can include this string that we know as part of the `secret` string that we are looking for, but that's a lot of useless work. Instead, we'll go about this problem a little differently.
+
+What we can do is just use the known string mentioned in the paragraph before. More specifically, we'll use the 16 characters that come right before the flag as our known block: `'ifying code is: '`. Then, we can start leaking the flag.
 
 To do this, we need our known string to fit in a block, meaning that we need to send in a buffer to line up the known string with a block. I will fill my buffer with B's
 
@@ -222,7 +231,7 @@ Block 3:	| o | w | s | : |\n | B | B | B | B | B | B | B | B | B | B | B |
 Block 4:	| B |\n | M | y |   | a | g | e | n | t |   | i | d | e | n | t |
 Block 5:	| i | f | y | i | n | g |   | c | o | d | e |   | i | s | : |   |
 Block 6:	|{1}| . |\n | D | o | w | n |   | w | i | t | h |   | t | h | e |
-Block 7:	|   | S | o | v | i | e | t | s | , |\n | 0 | 0 | 6 |\n |
+Block 7:	|   | S | o | v | i | e | t | s | , |\n | 0 | 0 | 6 |\n | 0 | 0 |
 ```
 
 We see that we need 12 B's to get `'ifying code is: '` properly fitted in Block 5. Now to find each value of the flag, we just have to remove a `B` and then do the brute forcing explained earlier. However, what happens after we delete the last (12th) `B`? We can't figure out all of the flag if the flag happens to be longer than 12 characters because we run out of B's to delete. So, let's just add a bunch more B's!
@@ -239,17 +248,17 @@ Block 5:	| B | B | B | B | B | B | B | B | B | B | B | B | B | B | B | B |
 Block 6:	| B |\n | M | y |   | a | g | e | n | t |   | i | d | e | n | t |
 Block 7:	| i | f | y | i | n | g |   | c | o | d | e |   | i | s | : |   |
 Block 8:	|{1}| . |\n | D | o | w | n |   | w | i | t | h |   | t | h | e |
-Block 9:	|   | S | o | v | i | e | t | s | , |\n | 0 | 0 | 6 |\n |
+Block 9:	|   | S | o | v | i | e | t | s | , |\n | 0 | 0 | 6 |\n | 0 | 0 |
 ```
 
-I added 32 more B's, but you can add however many you want, as long as the length of the flag isn't greater than the number of B's. So now we have the known in block 7 and a total of 44 B's, which I found out was enough after testing. Now let's start our code:
+I added 32 more B's, but you can add however many you want, as long as the length of the flag isn't greater than the number of B's. So now we have the known in block 7 and a total of 44 B's, which I found out was more than the length of the flag after some testing. Now let's start our code:
 
 ```
 from __future__ import print_function	# for the use of the end parameter in print functions
 from pwn import *		# pwntools is a very helpful tool for connecting to servers and programs. uses python 2
 import string 			# for string.printable
 
-context.log_level = 'warn'	# mutes the extra stuff from the remote() function
+context.log_level = 'warn'	# mutes the printing from the remote() function
 
 startOfKnown = 7 * (16 * 2) 	# starting position of known + part of the flag (block 7)
 paddingKnown = 12 + 32		# padding to get the start of the flag at block 7
@@ -281,7 +290,7 @@ As we can see, `startOfKnown` holds the start of block 7, `paddingKnown` is set 
 Block 7:	| f | y | i | n | g |   | c | o | d | e |   | i | s | : |   |(U)|
 ```
 
-Now we have to brute force this character, `(X)`! But how can we test `fying code is: (X)` to see if it is the same as `secret` (block 7)? We can send it as our input, but don't forget to pad the input so that `fying code is: (X)` will fit inside one block. Let's pad it with B's again like so:
+Now we have to brute force a character of the flag`(U)`! We'll call the brute forced character `(X)`. But how can we test `fying code is: (X)` to see if it is the same as `secret` (block 7)? We need to check the ciphertexts of both blocks to make sure they're equal. So, we can send `fying code is: (X)` as our input, but don't forget to pad the input so that `fying code is: (X)` will fit inside one block. Let's pad it with B's again like so:
 
 ```
 		| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f |
@@ -292,10 +301,34 @@ Block 2:	| e | p | o | r | t |   | i | s |   | a | s |   | f | o | l | l |
 Block 3:	| o | w | s | : |\n | B | B | B | B | B | B | B | B | B | B | B |
 Block 4:	| f | y | i | n | g |   | c | o | d | e |   | i | s | : |   |(X)|
 Block 5:	|\n | M | y |   | a | g | e | n | t |   | i | d | e | n | t | i |
-Block 6:	| f | y | i | n | g |   | c | o | d | e |   | i | s | : |   |{1}|
-Block 7:	| . |\n | D | o | w | n |   | w | i | t | h |   | t | h | e |   |
-Block 8:	| S | o | v | i | e | t | s | , |\n | 0 | 0 | 6 |\n |
+Block 6:	| f | y | i | n | g |   | c | o | d | e |   | i | s | : |   |(U)|
+Block 7:	|{1}| . |\n | D | o | w | n |   | w | i | t | h |   | t | h | e |
+Block 8:	|   | S | o | v | i | e | t | s | , |\n | 0 | 0 | 6 |\n | 0 | 0 |
+
+known = ''
 ```
+
+Notice how blocks 4 and 7 should be the same ciphertext if the first letter of the flag, `(U)` is equal to our brute forced character, `(X)` (where {1} is the rest of the flag)? Cool.
+
+The first character is obviously `'p'` since the start of the flag is always `picoCTF{`. So if we found the first character, then what do the blocks look like when we're looking for the second character?
+
+```
+		| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | a | b | c | d | e | f |
+		|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+Block 0:	| A | g | e | n | t | , |\n | G | r | e | e | t | i | n | g | s |
+Block 1:	| . |   | M | y |   | s | i | t | u | a | t | i | o | n |   | r |
+Block 2:	| e | p | o | r | t |   | i | s |   | a | s |   | f | o | l | l |
+Block 3:	| o | w | s | : |\n | B | B | B | B | B | B | B | B | B | B | B |
+Block 4:	| y | i | n | g |   | c | o | d | e |   | i | s | : |   | p |(X)|
+Block 5:	| M | y |   | a | g | e | n | t |   | i | d | e | n | t | i | f |
+Block 6:	| y | i | n | g |   | c | o | d | e |   | i | s | : |   | p |(U)|
+Block 7:	|{1}| . |\n | D | o | w | n |   | w | i | t | h |   | t | h | e |
+Block 8:	|   | S | o | v | i | e | t | s | , |\n | 0 | 0 | 6 |\n | 0 | 0 |
+
+known = 'p'
+```
+
+Again, `(X)` must be equal to `(U)` (where {1} is the rest of the flag). And in this case, `(U)` will be `'i'`
 
 Now we can add some more code:
 
